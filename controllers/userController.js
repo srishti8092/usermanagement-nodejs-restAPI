@@ -1,7 +1,8 @@
 const { validationResult } = require('express-validator')
 const bcrypt = require('bcryptjs');
 const db = require('../config/db')
-
+const randomString = require('randomstring');
+const sendMail = require('../helpers/sendMail')
 
 const register = async (req, res) => {
 
@@ -28,7 +29,19 @@ const register = async (req, res) => {
         const insertQuery = `INSERT INTO users (name, email, password) VALUES (?, ?, ?)`;
         await db.query(insertQuery, [name, email, hashedPassword]);
 
+        let mailSubject = 'Mail Verification';
+        const randomToken = randomString.generate();
+        let content = '<p>Hi ' + req.body.name + ', \
+        Please <a href="http://localhost:5000/api/mail-verification?token='+ randomToken + '"> verify</a> your mail </p>';
+        sendMail(email, mailSubject, content);
 
+        await db.query(`UPDATE users set token=-? where email=?`, [randomToken, email], function (error, result) {
+            if (error) {
+                return res.status(400).send({
+                    message: error
+                });
+            }
+        })
         res.status(201).json({ message: 'User registered successfully' });
 
     } catch (error) {
