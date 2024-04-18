@@ -15,6 +15,8 @@ const register = async (req, res) => {
         }
 
         const { name, email, password } = req.body;
+        const image = req.body.filename;
+        console.log('image', image)
 
         const sqlQueryForExistingUser = `SELECT email FROM users WHERE LOWER(email) = LOWER(?)`;
         const existingUser = await db.query(sqlQueryForExistingUser, [email]);
@@ -26,8 +28,8 @@ const register = async (req, res) => {
         }
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const insertQuery = `INSERT INTO users (name, email, password) VALUES (?, ?, ?)`;
-        await db.query(insertQuery, [name, email, hashedPassword]);
+        const insertQuery = `INSERT INTO users (name, email, password,image) VALUES (?, ?, ?, ?)`;
+        await db.query(insertQuery, [name, email, hashedPassword, image]);
 
         let mailSubject = 'Mail Verification';
         const randomToken = randomString.generate();
